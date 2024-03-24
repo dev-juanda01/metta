@@ -1,6 +1,8 @@
+import { BaseCRUD } from "./BaseCRUD.js";
 
-class BaseService {
+class BaseService extends BaseCRUD {
     constructor(repository) {
+        super();
         this.repository = repository;
     }
 
@@ -12,12 +14,16 @@ class BaseService {
         return this.repository.update(id, data);
     }
 
-    getAll() {
-        return this.repository.getAll();
+    async getAll() {
+        return await this.repository.getAll();
     }
 
-    getById(id) {
-        return this.repository.getById(id);
+    async getById(id) {
+        return await this.repository.getById(id);
+    }
+
+    async getOneByField({ field, value }) {
+        return await this.repository.getOneByField({ field, value });
     }
 }
 

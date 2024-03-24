@@ -12,6 +12,23 @@ class UserRoutes extends BaseRoutes {
             this.middlewares.isEmailValid("email"),
         ]);
     }
+
+    detail(enpoint, middlewares) {
+        this.router.get(
+            `/${enpoint}`,
+            [...middlewares, this.middlewares.validateFields],
+            this.controller.detail
+        );
+    }
+
+    routes() {
+        this.create();
+        this.detail("session/detail", [
+            this.middlewares_encoded.validateTokenRequest,
+        ]);
+
+        return this.router;
+    }
 }
 
 export { UserRoutes };

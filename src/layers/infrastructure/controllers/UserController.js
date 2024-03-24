@@ -11,6 +11,23 @@ class UserController extends BaseController {
 
         res.status(status).json(extras);
     }
+
+    detail = async (req, res) => {
+        const user = req.user;
+        let { ok, status, ...extras } = await this.service.getById(user);
+
+        if(ok) {
+            extras = {
+                uuid: extras.result.uuid,
+                name: extras.result.name,
+                is_admin: extras.result.is_admin,
+                email: extras.result.email
+            };
+        }
+
+        res.status(status).json(extras);
+
+    }
 }
 
 export { UserController };

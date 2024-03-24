@@ -7,11 +7,12 @@ class ConversationRoutes extends BaseRoutes {
 
     create() {
         super.create("add/message", [
-            this.middlewares.isNotEmtyField("user"),
-            this.middlewares.isUUIDValid("user"),
-            this.middlewares.isNotEmtyField("client"),
-            this.middlewares.isUUIDValid("client"),
+            this.middlewares_encoded.validateTokenRequest,
+            this.middlewares.isNotEmtyField("to"),
+            this.middlewares.isUUIDValid("to"),
             this.middlewares.isNotEmtyField("content"),
+            this.middlewares.isObjectValid("content"),
+            this.middlewares.validateFields,
         ]);
     }
 }

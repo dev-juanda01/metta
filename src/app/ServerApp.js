@@ -1,7 +1,9 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import http from "http";
 import * as server_contants from "./constants.js";
+import { Server } from "socket.io";
 import { DatabaseConnection } from "../database/DatabaseConnection.js";
 import { UserRoutes } from "../layers/infrastructure/routes/UserRoutes.js";
 import { UserController } from "../layers/infrastructure/controllers/UserController.js";
@@ -18,12 +20,30 @@ import { ConversationRepository } from "../layers/domain/repositories/Conversati
 import { WhatsAppManager } from "../whatsapp/WhatsappManager.js";
 import { WhatsAppRoutes } from "../layers/infrastructure/routes/WhatsappRoutes.js";
 import { WhatsAppController } from "../layers/infrastructure/controllers/WhatsappController.js";
+import { AuthenticationRoutes } from "../layers/infrastructure/routes/AuthenticationRoutes.js";
+import { AuthenticationController } from "../layers/infrastructure/controllers/AuthenticationController.js";
+import { AuthenticationService } from "../layers/application/AuthenticationService.js";
+import { AuthenticationRepository } from "../layers/domain/repositories/AuthenticationRepository.js";
+import { JsonWebTokenMiddleware } from "../layers/infrastructure/middlewares/JsonWebTokenMiddleware.js";
+import { SocketServer } from "./SocketServer.js";
+import { SocketMiddlewares } from "../layers/infrastructure/middlewares/SocketMiddlewares.js";
+import { BackgroundTask } from "./BackgroundTask.js";
+import { SocketService } from "../layers/application/SocketService.js";
 
 class ServerApp {
     constructor() {
         this.app = express();
+        this.http_server = http.createServer(this.app);
         this.database_connection = new DatabaseConnection();
         this.ws_manager = new WhatsAppManager(this.app);
+        this.io = new Server(this.http_server, {
+            cors: {
+                origin: "*",
+                methods: ["GET", "POST"],
+                allowedHeaders: ["my-custom-header"],
+                credentials: false,
+            },
+        });
     }
 
     middlewares() {
@@ -41,6 +61,20 @@ class ServerApp {
     }
 
     routes() {
+        // authenticate routes
+        this.app.use(
+            server_contants.server_config.routes.auth,
+            new AuthenticationRoutes(
+                new AuthenticationController(
+                    new AuthenticationService(
+                        new AuthenticationRepository(
+                            new JsonWebTokenMiddleware()
+                        )
+                    )
+                )
+            ).routes()
+        );
+
         // users routes
         this.app.use(
             server_contants.server_config.routes.users,
@@ -62,7 +96,9 @@ class ServerApp {
             server_contants.server_config.routes.conversation,
             new ConversationRoutes(
                 new ConversationController(
-                    new ConversationService(new ConversationRepository())
+                    new ConversationService(
+                        new ConversationRepository(this.ws_manager)
+                    )
                 )
             ).routes()
         );
@@ -74,9 +110,28 @@ class ServerApp {
         );
     }
 
+    socket() {
+
+        const socket_server = new SocketServer(
+            this.io,
+            this.ws_manager,
+            new SocketMiddlewares(new JsonWebTokenMiddleware()),
+            new SocketService()
+        );
+
+        socket_server.chatEvents();
+    }
+
+    celery() {
+        const background_manager = new BackgroundTask(this.io, new SocketService());
+
+        // listeners
+        background_manager.sendMessageWhatsAppToUser();
+    }
+
     listen() {
         // init listen server
-        this.app.listen(server_contants.server_config.port, () => {
+        this.http_server.listen(server_contants.server_config.port, () => {
             console.log(
                 `${server_contants.server_config.message_running} ${server_contants.server_config.host_running}:${server_contants.server_config.port}`
             );
@@ -85,8 +140,10 @@ class ServerApp {
 
     running() {
         this.listen();
+        this.celery();
         this.middlewares();
         this.routes();
+        this.socket();
         this.database_connection.connect();
         this.ws_manager.runningWebhooks();
     }

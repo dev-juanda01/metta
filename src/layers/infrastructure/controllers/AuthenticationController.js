@@ -1,15 +1,21 @@
 class AuthenticationController {
+    constructor(service) {
+        this.service = service;
+    }
+
     /**
      * This method allowed the authentication for users
      *
      * @param {object} req represent the object request
      * @param {object} res represent the object response
      */
-    async authUserApi(req, res) {
-        const user = req.body;
+    authenticate = async (req, res) => {
+        const { email, password } = req.body;
 
-        const authUser = new AutheticationUser(new ManageJWT());
-        const { ok, status, ...result_auth } = await authUser.loginUser(user);
+        const { ok, status, ...result_auth } = await this.service.authenticate(
+            email,
+            password
+        );
 
         res.status(status).json(result_auth);
     }
@@ -20,13 +26,10 @@ class AuthenticationController {
      * @param {object} req represent the object request
      * @param {object} res represent the object response
      */
-    async refreshToken(req, res) {
+    refresh = async (req, res) => {
         const { refresh_token } = req.body;
 
-        const manager_jwt = new ManageJWT();
-        const authUser = new AutheticationUser(manager_jwt);
-
-        const { ok, status, ...data_auth } = await authUser.refreshToken(
+        const { ok, status, ...data_auth } = await this.service.refresh(
             refresh_token
         );
 

@@ -1,6 +1,7 @@
 import express from "express";
 import { BaseCRUD } from "../../application/BaseCRUD.js";
 import { RoutesMiddlware } from "../middlewares/RoutesMiddleware.js";
+import { JsonWebTokenMiddleware } from "../middlewares/JsonWebTokenMiddleware.js";
 
 class BaseRoutes extends BaseCRUD {
     constructor(controller) {
@@ -9,6 +10,7 @@ class BaseRoutes extends BaseCRUD {
         this.controller = controller;
         this.router = express.Router();
         this.middlewares = new RoutesMiddlware();
+        this.middlewares_encoded = new JsonWebTokenMiddleware();
     }
 
     create(endpoint = "create", middlewares = []) {

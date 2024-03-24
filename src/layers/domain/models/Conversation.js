@@ -10,6 +10,8 @@ const Conversation = mongoose.Schema({
         type: Date,
         default: new Date(),
     },
+    user: String,
+    client: String,
     messages: [Message],
 });
 

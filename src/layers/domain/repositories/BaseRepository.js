@@ -8,11 +8,11 @@ class BaseRepository extends BaseCRUD {
         this.model = model;
     }
 
-    create(data) {
+    async create(data) {
         try {
             data.uuid = uuid();
             const result = new this.model(data);
-            result.save();
+            await result.save();
 
             return {
                 ok: true,
@@ -69,6 +69,54 @@ class BaseRepository extends BaseCRUD {
                     msg: constants.generals.messages.not_exists,
                 };
             }
+
+            return {
+                ok: true,
+                status: constants.generals.code_status.STATUS_200,
+                result,
+            };
+        } catch (error) {
+            console.log(error);
+
+            return {
+                ok: false,
+                status: constants.generals.code_status.STATUS_500,
+                msg: constants.generals.messages.error_server,
+            };
+        }
+    }
+
+    async getOneByField({ field, value }) {
+        try {
+            const result = await this.model.findOne({ [field]: value });
+
+            if (!result) {
+                return {
+                    ok: false,
+                    status: constants.generals.code_status.STATUS_404,
+                    msg: constants.generals.messages.not_exists,
+                };
+            }
+
+            return {
+                ok: true,
+                status: constants.generals.code_status.STATUS_200,
+                result: result._doc,
+            };
+        } catch (error) {
+            console.log(error);
+
+            return {
+                ok: false,
+                status: constants.generals.code_status.STATUS_500,
+                msg: constants.generals.messages.error_server,
+            };
+        }
+    }
+
+    async getAll() {
+        try {
+            const result = await this.model.find({});
 
             return {
                 ok: true,

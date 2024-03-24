@@ -14,6 +14,8 @@ class BaseCRUD {
     getAll() {}
 
     getById(id) {}
+
+    getOneByField({ field, value }) {}
 }
 
 export { BaseCRUD }

@@ -30,6 +30,10 @@ class RoutesMiddlware {
     isBooleanField(field) {
         return check(field, "This field is not valid boolean format").isBoolean();
     }
+
+    isObjectValid(field) {
+        return check(field, "This field must be object format").isObject();
+    }
 }
 
 export { RoutesMiddlware };

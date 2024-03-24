@@ -13,10 +13,7 @@ export const Message = mongoose.Schema({
         type: String,
         required: true
     },
-    to: {
-        type: String,
-        required: true
-    },
+    to: String,
     type: {
         type: String,
         required: true
