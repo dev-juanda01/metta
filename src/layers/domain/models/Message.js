@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 export const Message = mongoose.Schema({
     uuid: {
@@ -18,10 +18,7 @@ export const Message = mongoose.Schema({
         type: String,
         required: true
     },
-    body: {
-        type: String,
-        required: true
-    },
+    body: Schema.Types.Mixed,
     ws_id: {
         type: String,
         required: true
