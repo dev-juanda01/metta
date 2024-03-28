@@ -1,9 +1,12 @@
-import express from "express";
 import cors from "cors";
-import morgan from "morgan";
 import http from "http";
+import path from "path";
+import morgan from "morgan";
+import express from "express";
+import fileUpload from "express-fileupload";
 import * as server_contants from "./constants.js";
 import { Server } from "socket.io";
+import { __dirname } from "../system.variables.js";
 import { DatabaseConnection } from "../database/DatabaseConnection.js";
 import { UserRoutes } from "../layers/infrastructure/routes/UserRoutes.js";
 import { UserController } from "../layers/infrastructure/controllers/UserController.js";
@@ -51,11 +54,21 @@ class ServerApp {
 
         this.app.use(morgan(server_contants.server_config.morgan_mode));
 
+        this.app.use(express.static(path.join(__dirname, "/public")));
+
         this.app.use(express.json());
 
         this.app.use(
             express.urlencoded({
                 extended: false,
+            })
+        );
+
+        this.app.use(
+            fileUpload({
+                useTempFiles: true,
+                tempFileDir: "/tmp/",
+                createParentPath: true,
             })
         );
     }
@@ -111,7 +124,6 @@ class ServerApp {
     }
 
     socket() {
-
         const socket_server = new SocketServer(
             this.io,
             this.ws_manager,
@@ -123,7 +135,10 @@ class ServerApp {
     }
 
     celery() {
-        const background_manager = new BackgroundTask(this.io, new SocketService());
+        const background_manager = new BackgroundTask(
+            this.io,
+            new SocketService()
+        );
 
         // listeners
         background_manager.sendMessageWhatsAppToUser();
