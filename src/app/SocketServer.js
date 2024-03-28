@@ -64,17 +64,36 @@ class SocketServer {
                 socket.on(
                     constants.socket.events.get_messages,
                     async (data) => {
+                        let conversations = null;
+
                         if (data) {
-                            let conversations =
+                            conversations =
                                 await conversation_service.getOneByField({
                                     field: "client",
                                     value: data.uuid,
                                 });
 
-                            if (conversations.ok) {
+                            if (
+                                conversations.status ===
+                                constants.generals.code_status.STATUS_404
+                            ) {
+                                conversations = {
+                                    ok: true,
+                                    status: constants.generals.code_status
+                                        .STATUS_200,
+                                    result: {
+                                        messages: [],
+                                    },
+                                };
+                            }
+
+                            if (
+                                conversations.status !==
+                                constants.generals.code_status.STATUS_500
+                            ) {
                                 const client_chat =
                                     await client_service.getById(
-                                        conversations.result.client
+                                        data.uuid
                                     );
 
                                 if (client_chat.ok) {
@@ -88,12 +107,20 @@ class SocketServer {
                                     };
                                 }
                             }
-
-                            socket.emit(
-                                constants.socket.events.list_messages,
-                                conversations
-                            );
+                        } else {
+                            conversations = {
+                                ok: false,
+                                status: constants.generals.code_status
+                                    .STATUS_400,
+                                msg: constants.generals.messages
+                                    .data_not_provider,
+                            };
                         }
+
+                        socket.emit(
+                            constants.socket.events.list_messages,
+                            conversations
+                        );
                     }
                 );
 
@@ -103,9 +130,13 @@ class SocketServer {
                     async (message) => {
                         message.from = socket.uuid;
 
-                        const new_message = await conversation_service.create(
+                        let new_message = await conversation_service.create(
                             message
                         );
+
+                        if(new_message.result && new_message.result.messages) {
+                            new_message.result = new_message.result.messages[0]
+                        }
 
                         socket.emit(
                             constants.socket.events.received_message,
