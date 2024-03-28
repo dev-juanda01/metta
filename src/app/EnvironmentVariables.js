@@ -8,6 +8,7 @@ class EnvironmentVariables {
         // variables
         this.SERVER_PORT = process.env.SERVER_PORT;
         this.DB_CONNECTION = process.env.DB_CONNECTION;
+        this.SERVER_HOST = process.env.SERVER_HOST;
 
         this.WA_PHONE_NUMBER_EN = process.env.WA_PHONE_NUMBER_EN;
         this.WA_ACCOUNT_ID = process.env.WA_ACCOUNT_ID;

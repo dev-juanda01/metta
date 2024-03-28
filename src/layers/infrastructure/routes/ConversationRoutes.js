@@ -15,6 +15,24 @@ class ConversationRoutes extends BaseRoutes {
             this.middlewares.validateFields,
         ]);
     }
+
+    attachFile() {
+        this.router.post(
+            "/attach/file",
+            [
+                this.middlewares_encoded.validateTokenRequest,
+                this.middlewares.isUUIDValid("to"),
+                this.middlewares.isNotEmtyField("type"),
+                this.middlewares.validateFields,
+            ],
+            this.controller.upload
+        );
+    }
+
+    routes() {
+        this.attachFile();
+        return super.routes();
+    }
 }
 
 export { ConversationRoutes };

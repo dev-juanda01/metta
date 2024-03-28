@@ -61,7 +61,7 @@ class JsonWebTokenMiddleware {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
+                status: constants.generals.code_status.STATUS_401,
                 msg: constants.jwt.invalid_token,
             };
         }

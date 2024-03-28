@@ -17,7 +17,7 @@ class BaseRepository extends BaseCRUD {
             return {
                 ok: true,
                 status: constants.generals.code_status.STATUS_201,
-                result,
+                result: result._doc,
             };
         } catch (error) {
             console.log(error);

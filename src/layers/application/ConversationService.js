@@ -10,6 +10,10 @@ class ConversationService extends BaseService {
     async create(data) {
         return await super.create(data);
     }
+
+    async upload(data) {
+        return await this.repository.upload(data);
+    }
 }
 
 export { ConversationService };

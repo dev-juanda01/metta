@@ -17,7 +17,8 @@ class SocketMiddlewares {
         if (!is_valid_token.ok) {
             const error = new Error(is_valid_token.msg);
             error.data = {
-                type: "unauthorized"
+                type: constants.generals.messages.unauthorized,
+                status: constants.generals.code_status.STATUS_401
             }
             return next(error);
         }

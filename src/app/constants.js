@@ -18,6 +18,8 @@ const generals = {
         deleted: "Deleted, Ok!!",
         not_exists: "Register not exist",
         success_process: "Success process!!",
+        unauthorized: "unauthorized",
+        data_not_provider: "data not provider",
     },
     types: {
         DATA_TYPE_OBJECT: "object",
@@ -26,6 +28,8 @@ const generals = {
 
 const server_config = {
     port: env_server.SERVER_PORT,
+    server_host: env_server.SERVER_HOST,
+    server_host_dir_attach: `${env_server.SERVER_HOST}/attach`,
     message_running: "Server running",
     host_running: "http://localhost",
     routes: {
@@ -33,7 +37,7 @@ const server_config = {
         clients: "/api/clients",
         conversation: "/api/conversations",
         whatsapp: "/api/whatsapp/config",
-        auth: "/api/auth/"
+        auth: "/api/auth/",
     },
     morgan_mode: "dev",
 };
@@ -47,7 +51,7 @@ const jwt = {
     token_not_provider: "token not provider",
     invalid_token: "invalid token provider",
     invalid_refresh_token: "invalid refresh token provider",
-    user_not_decoded_token: "user not decoded token"
+    user_not_decoded_token: "user not decoded token",
 };
 
 const db_config = {
@@ -62,6 +66,10 @@ const users = {
     password_incorrect: "Correo o contraseña son incorrectos",
 };
 
+const files = {
+    error_upload: "Error upload files process",
+};
+
 const whatsapp = {
     phone_number_id: env_server.WA_PHONE_NUMBER_EN,
     account_id: env_server.WA_ACCOUNT_ID,
@@ -70,15 +78,23 @@ const whatsapp = {
     webhook_endpoint: env_server.WEBHOOK_ENDPOINT,
     webhook_verification_token: env_server.WEBHOOK_VERIFICATION_TOKEN,
     listener_port: env_server.WS_LISTENER_PORT,
+    messages: {
+        types: {
+            document: "document",
+            text: "text",
+        },
+        type_not_valid: "Este tipo no esta permitido",
+        run_server: "Server started listening whatsapp http://localhost",
+    },
 };
 
 const celery = {
     broker: env_server.BROKER_CELERY,
     backend: env_server.BACKEND_CELERY,
     tasks: {
-        send_message: "send.message.user"
-    }
-}
+        send_message: "send.message.user",
+    },
+};
 
 const socket = {
     events: {
@@ -88,15 +104,25 @@ const socket = {
         get_messages: "get:messages:user",
         list_messages: "list:messages:user",
         send_message: "send:message",
-        received_message: "received:message"
+        received_message: "received:message",
     },
     logs: {
         connected: "Socket connected",
-        disconnected: "Socket disconnected"
+        disconnected: "Socket disconnected",
     },
     namespaces: {
-        chats: "/chats"
-    }
-}
+        chats: "/chats",
+    },
+};
 
-export { server_config, db_config, generals, users, whatsapp, jwt, celery, socket };
+export {
+    server_config,
+    db_config,
+    generals,
+    users,
+    whatsapp,
+    jwt,
+    celery,
+    socket,
+    files,
+};
