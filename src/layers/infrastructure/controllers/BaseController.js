@@ -10,7 +10,7 @@ class BaseController {
         res.status(status).json(extras);
     }
 
-    async update(req, res) {
+    update = async (req, res) => {
         const { id, data } = req.body;
         const { ok, status, ...extras } = await this.service.update(id, data);
 

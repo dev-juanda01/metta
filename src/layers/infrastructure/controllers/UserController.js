@@ -21,7 +21,8 @@ class UserController extends BaseController {
                 uuid: extras.result.uuid,
                 name: extras.result.name,
                 is_admin: extras.result.is_admin,
-                email: extras.result.email
+                email: extras.result.email,
+                role: extras.result.role
             };
         }
 

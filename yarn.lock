@@ -232,6 +232,11 @@ cors@^2.8.5, cors@~2.8.5:
     object-assign "^4"
     vary "^1"
 
+croner@^7.0.5:
+  version "7.0.7"
+  resolved "https://registry.yarnpkg.com/croner/-/croner-7.0.7.tgz#58fc83ab348c21e52f62051361761ec758b8494b"
+  integrity sha512-05wALDHKjt9zG1JbpziNnWPCwwv9fUKbNf6q0dWaDMJ/eDxW0394Q2R1VAzKvDgoEZBT9FhWSHHFIcgwLgXjcQ==
+
 debug@2.6.9, debug@~2.6.9:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"
@@ -995,6 +1000,13 @@ string_decoder@~0.10.x:
   version "0.10.31"
   resolved "https://registry.yarnpkg.com/string_decoder/-/string_decoder-0.10.31.tgz#62e203bc41766c6c28c9fc84301dab1c5310fa94"
   integrity sha512-ev2QzSzWPYmy9GuqfIVildA4OdcGLeFZQrq5ys6RtiuF+RQQiZWr8TZNyAcuVXyQRYfEO+MsoB/1BuQVhOJuoQ==
+
+toad-scheduler@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/toad-scheduler/-/toad-scheduler-3.0.1.tgz#ae5e5b3158c1ad20f9e3826db0ad3beb3202ce2c"
+  integrity sha512-UunrUeXWHXNauNMP47OHKfFeJlHxt89f29fdwey+EQLnVGbGPcFk7ArTuTk7SCcrSeVDTlhr5ayFHal0Z1LhJg==
+  dependencies:
+    croner "^7.0.5"
 
 toidentifier@1.0.1:
   version "1.0.1"

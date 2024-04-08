@@ -1,23 +1,32 @@
 import mongoose from "mongoose";
+import * as constants from "../../../app/constants.js";
 
 const User = mongoose.Schema({
     uuid: {
         type: String,
-        required: true
+        required: true,
     },
     name: String,
     is_admin: {
         type: Boolean,
-        default: false
+        default: false,
     },
     email: {
         type: String,
-        required: true
+        required: true,
     },
     password: {
         type: String,
-        required: true
-    }
-})
+        required: true,
+    },
+    role: {
+        type: String,
+        enum: constants.users.roles.all,
+    },
+    current_active_conversation: { // current active conversations (agent)
+        type: Number,
+        default: 0
+    },
+});
 
-export default mongoose.model("User", User)
+export default mongoose.model("User", User);

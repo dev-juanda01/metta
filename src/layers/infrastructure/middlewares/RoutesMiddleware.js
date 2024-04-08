@@ -28,11 +28,31 @@ class RoutesMiddlware {
     }
 
     isBooleanField(field) {
-        return check(field, "This field is not valid boolean format").isBoolean();
+        return check(
+            field,
+            "This field is not valid boolean format"
+        ).isBoolean();
     }
 
     isObjectValid(field) {
         return check(field, "This field must be object format").isObject();
+    }
+
+    isInRange(field, min, max) {
+        return check(field).custom((limit) => {
+            if (!(limit >= min && limit <= max)) {
+                throw new Error(
+                    "The value must be in the defined range " +
+                        min +
+                        " - " +
+                        max
+                );
+            }
+        });
+    }
+
+    isInCollection(field, collection) {
+        return check(field, "Value not incluedes in collection - " + collection).isIn(collection);
     }
 }
 

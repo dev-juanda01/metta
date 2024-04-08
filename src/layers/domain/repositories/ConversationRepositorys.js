@@ -1,10 +1,14 @@
+import fs from "fs";
+import Conversation from "../models/Conversation.js";
 import { v4 as uuid } from "uuid";
 import * as constants from "../../../app/constants.js";
-import Conversation from "../models/Conversation.js";
 import { BaseRepository } from "./BaseRepository.js";
 import { ClientRepository } from "./ClientRepository.js";
 import { BackgroundTask } from "../../../app/BackgroundTask.js";
 import { ManagerFile } from "../../../utils/ManagerFile.js";
+import { __dirname } from "../../../system.variables.js";
+import { ScheduledTask } from "../../../app/ScheduledTask.js";
+import { SettingRepository } from "./SettingRepository.js";
 
 class ConversationRepository extends BaseRepository {
     constructor(ws_manager) {
@@ -15,134 +19,11 @@ class ConversationRepository extends BaseRepository {
 
     async create(data) {
         try {
-            const client_respository = new ClientRepository();
-
             // if data include "id" this message provider WhatsApp
             if (data.id) {
-                // find client send message to WhatsApp
-                const client_sender = await client_respository.getOneByField({
-                    field: "phone",
-                    value: data.from,
-                });
-
-                const is_valid_sender =
-                    client_sender.ok &&
-                    client_sender.status !==
-                        constants.generals.code_status.STATUS_500;
-
-                if (is_valid_sender) {
-                    data = {
-                        ...data,
-                        uuid: uuid(),
-                        from: client_sender.result.uuid,
-                        body: {
-                            text: data.text.body,
-                        },
-                        ws_id: data.id,
-                    };
-
-                    // find conversation associate this sender user message
-                    const conversation_associate = await this.getOneByField({
-                        field: "client",
-                        value: client_sender.result.uuid,
-                    });
-
-                    const background_manager = new BackgroundTask();
-
-                    const is_valid_conversation =
-                        conversation_associate.ok &&
-                        conversation_associate.status !==
-                            constants.generals.code_status.STATUS_500;
-
-                    if (is_valid_conversation) {
-                        data.to = conversation_associate.result.user;
-
-                        await this.addMessage({
-                            uuid: conversation_associate.result.uuid,
-                            message: data,
-                        });
-
-                        // init celery task
-                        await background_manager.sendBackgroundTask(
-                            constants.celery.tasks.send_message,
-                            [data]
-                        );
-                    } else {
-                        const new_conversation = {
-                            messages: [data],
-                            client: data.from,
-                        };
-
-                        const conversation_created = super.create(
-                            new_conversation
-                        );
-
-                        // init celery task
-                    }
-                }
+                await this.registerMessageWhatsApp(data);
             } else {
-                data = { ...data, ...data.content };
-
-                // find phone client and validate exists
-                const client = await client_respository.getById(data.to);
-                if (!client.ok) return client;
-
-                // send message to whatsapp
-                const response_message = await this.ws_manager.sendMessage({
-                    to: client.result.phone,
-                    type: data.type,
-                    content: data.content,
-                });
-
-                if (!response_message.ok) return response_message;
-
-                // bind ws id
-                data = {
-                    ...data,
-                    ws_id: response_message.result.id,
-                };
-
-                // find conversation associate this sender user message
-                const conversation_associate = await this.getOneByField({
-                    field: "client",
-                    value: data.to,
-                });
-
-                const is_valid_conversation =
-                    conversation_associate.ok &&
-                    conversation_associate.status !==
-                        constants.generals.code_status.STATUS_500;
-
-                if (!is_valid_conversation) {
-                    const conversation = {
-                        messages: [
-                            {
-                                uuid: uuid(),
-                                ...data,
-                            },
-                        ],
-                        client: data.to,
-                        user: data.from,
-                    };
-
-                    // save in databse
-                    const conversation_created = await super.create(
-                        conversation
-                    );
-
-                    return conversation_created;
-                } else {
-                    const conversation_modified = await this.addMessage({
-                        uuid: conversation_associate.result.uuid,
-                        message: { ...data, uuid: uuid() },
-                    });
-
-                    if (conversation_modified.ok) {
-                        conversation_modified.result = data;
-                    }
-
-                    return conversation_modified;
-                }
+                return await this.registerMessageApplication(data);
             }
         } catch (error) {
             console.log(error);
@@ -153,6 +34,196 @@ class ConversationRepository extends BaseRepository {
                 msg: constants.generals.messages.error_server,
             };
         }
+    }
+
+    async registerMessageWhatsApp(data) {
+        const client_respository = new ClientRepository();
+        const background_manager = new BackgroundTask();
+
+        // find client send message to WhatsApp
+        const client_sender = await client_respository.getOneByField({
+            field: "phone",
+            value: data.from,
+        });
+
+        if (client_sender.ok || data.client) {
+            const current_client = client_sender.ok
+                ? client_sender.result
+                : data.client;
+
+            const conversation_activate = await this.model.findOne({
+                client: current_client.uuid,
+                is_activate: true,
+            });
+
+            data = {
+                ...data,
+                uuid: uuid(),
+                from: current_client.uuid,
+                body: data.text
+                    ? {
+                          text: data.text.body,
+                      }
+                    : data[data.type],
+                ws_id: data.id,
+                date: new Date()
+            };
+
+            if (conversation_activate) {
+                // find conversation associate this sender user message
+                const conversation_associate = conversation_activate;
+
+                data.to = conversation_associate.user;
+
+                // download file if type is other than text
+                data = await this.download(data, conversation_associate.uuid);
+
+                // add message to conversation
+                await this.addMessage({
+                    uuid: conversation_associate.uuid,
+                    message: data,
+                });
+
+                // init celery task - send message
+                await background_manager.sendBackgroundTask(
+                    constants.celery.tasks.send_message,
+                    [data]
+                );
+
+                /*
+                    const new_conversation = {
+                        messages: [data],
+                        client: data.from,
+                    };
+    
+                    const conversation_created = await super.create(
+                        new_conversation
+                    );
+    
+                    // download file if type is other than text
+                    const data_download = await this.download(
+                        data,
+                        conversation_created.result.uuid
+                    );
+    
+                    // update conversation
+    
+                    // init celery task
+                    await background_manager.sendBackgroundTask(
+                        constants.celery.tasks.send_message,
+                        [data]
+                    );
+                    */
+            } else {
+                // TODO: assigment client to user
+                await background_manager.sendBackgroundTask(
+                    constants.celery.tasks.send_assigment_conversation,
+                    [{ ...data, client: client_sender.result._doc }]
+                );
+            }
+        } else {
+            // TODO: register client in database
+            // TODO: assigment client to user
+        }
+    }
+
+    async registerMessageApplication(data) {
+        const client_respository = new ClientRepository();
+        data = { ...data, ...data.content };
+
+        // find conversation associate this sender user message
+        const conversation_associate = await this.model.findOne({
+            client: data.to,
+            is_activate: true,
+        });
+
+        // process validation active conversation (verify date conversation)
+        if (conversation_associate) {
+            const setting_repository = new SettingRepository();
+            const setting_admin = await setting_repository.model
+                .findOne()
+                .exec();
+
+            const active_conversation = this.checkConversationActive(
+                conversation_associate.date,
+                setting_admin.expired_time
+            );
+
+            if (!active_conversation) {
+                conversation_associate.is_activate = false;
+                await conversation_associate.save();
+
+                const background_manager = new BackgroundTask();
+                await background_manager.sendBackgroundTask(
+                    constants.celery.tasks.send_expired_conversation,
+                    [
+                        {
+                            from: data.from,
+                            text: `${
+                                constants.conversation.expired_conversation
+                            } ${conversation_associate.date.toLocaleString()}`,
+                        },
+                    ]
+                );
+
+                return {
+                    ok: false,
+                    status: constants.generals.code_status.STATUS_400,
+                    msg: constants.generals.messages.forbiden,
+                };
+            }
+        }
+
+        // find phone client and validate exists
+        const client = await client_respository.getById(data.to);
+        if (!client.ok) return client;
+
+        // send message to whatsapp
+        const response_message = await this.ws_manager.sendMessage({
+            to: client.result.phone,
+            type: data.type,
+            content: data.content,
+        });
+
+        // bind ws id
+        data = {
+            ...data,
+            ws_id: response_message.ok ? response_message.result.id : "",
+        };
+
+        if (!conversation_associate) {
+            const conversation = {
+                messages: [
+                    {
+                        uuid: uuid(),
+                        ...data,
+                    },
+                ],
+                client: data.to,
+                user: data.from,
+            };
+
+            // save in databse
+            const conversation_created = await super.create(conversation);
+
+            return conversation_created;
+        }
+
+        data.uuid = uuid();
+        data.date = new Date();
+        data.is_read = false;
+
+        const conversation_modified = await this.addMessage({
+            uuid: conversation_associate.uuid,
+            message: data,
+        });
+
+        if (conversation_modified.ok) {
+            delete data.content;
+            conversation_modified.result = data;
+        }
+
+        return conversation_modified;
     }
 
     async addMessage({ uuid, message }) {
@@ -210,12 +281,13 @@ class ConversationRepository extends BaseRepository {
                 ...props,
                 body: {
                     ...files_upload.files.attach,
-                    caption: props.caption
+                    caption: props.caption,
+                    url: `${constants.server_config.server_host_dir_attach}/${conversation.result.uuid}/${files_upload.files.attach.file}`,
                 },
                 content: {
                     link: `${constants.server_config.server_host_dir_attach}/${conversation.result.uuid}/${files_upload.files.attach.file}`,
                     caption: props.caption,
-                    filename: files_upload.files.attach.name
+                    filename: files_upload.files.attach.name,
                 },
             };
 
@@ -234,8 +306,132 @@ class ConversationRepository extends BaseRepository {
         }
     }
 
-    async download() {
-        
+    async download(payload, conversation) {
+        if (payload.type !== constants.whatsapp.messages.types.text) {
+            const data_file = payload[payload.type];
+            const extension_file = data_file.filename.split(".")[1];
+
+            payload.body = {
+                file: `${uuid()}.${extension_file}`,
+                extension: extension_file,
+                name: data_file.filename,
+                id: data_file.id,
+            };
+
+            const saved_file = await this.saveMediaFileConversation({
+                media_id: payload.body.id,
+                conversation_folder: conversation,
+                filename: payload.body.file,
+            });
+
+            if (!saved_file.ok) {
+                const scheduled_task = new ScheduledTask();
+                scheduled_task.sendScheduledTask({
+                    callback: this.saveMediaFileConversation,
+                    id: Math.random * 1000,
+                    data: {
+                        media_id: payload.body.id,
+                        conversation_folder: conversation,
+                        filename: payload.body.file,
+                    },
+                    type: constants.celery.scheduler.types.FIVE_SECONDS,
+                });
+            }
+        }
+        return payload;
+    }
+
+    saveMediaFileConversation = async ({
+        media_id,
+        filename,
+        conversation_folder,
+    }) => {
+        try {
+            // get url media
+            const file_id = await this.ws_manager.ws_client.getMedia(media_id);
+
+            // verify exists conversation folder and create in case not exists
+            let path_file = `${__dirname}/public/attach/${conversation_folder}`;
+            fs.mkdirSync(path_file, { recursive: true });
+
+            // download file whatsapp
+            path_file = `${path_file}/${filename}`;
+
+            await this.ws_manager.ws_client.downloadMedia(
+                file_id.url,
+                path_file
+            );
+
+            return {
+                ok: true,
+                status: constants.generals.code_status.STATUS_200,
+            };
+        } catch (error) {
+            console.log(error);
+
+            return {
+                ok: false,
+                status: constants.generals.code_status.STATUS_500,
+                msg: constants.generals.messages.error_server,
+            };
+        }
+    };
+
+    checkConversationActive(conversation_date, expired_time) {
+        const date_expired = conversation_date;
+        date_expired.setHours(date_expired.getHours() + expired_time);
+
+        const current_date = new Date();
+
+        return current_date < date_expired;
+    }
+
+    async getClientsConversationActiveWithUser(uuid_user) {
+        try {
+            let clients_associate = await this.model.find(
+                { user: uuid_user, is_activate: true },
+                { client: 1 }
+            );
+
+            clients_associate = clients_associate.map((doc) => doc.client);
+
+            return {
+                ok: true,
+                status: constants.generals.code_status.STATUS_200,
+                result: clients_associate,
+            };
+        } catch (error) {
+            console.log(error);
+
+            return {
+                ok: false,
+                status: constants.generals.code_status.STATUS_500,
+                msg: constants.generals.messages.error_server,
+            };
+        }
+    }
+
+    async getConversationActiveClient(uuid_client) {
+        try {
+            let conversation_client = await this.model.findOne({
+                client: uuid_client,
+                is_activate: true,
+            });
+
+            return {
+                ok: true,
+                status: constants.generals.code_status.STATUS_200,
+                result: conversation_client._doc,
+            };
+        } catch (error) {
+            console.log(error);
+
+            return {
+                ok: false,
+                status: constants.generals.code_status.STATUS_500,
+                msg: constants.generals.messages.error_server,
+            };
+        }
     }
 }
 

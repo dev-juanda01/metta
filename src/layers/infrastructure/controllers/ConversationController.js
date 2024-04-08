@@ -18,7 +18,7 @@ class ConversationController extends BaseController {
         const attach_data = {
             props: {
                 ...req.body,
-                from: req.user
+                from: req.user,
             },
             files: req.files,
         };

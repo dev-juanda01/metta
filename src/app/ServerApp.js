@@ -32,6 +32,10 @@ import { SocketServer } from "./SocketServer.js";
 import { SocketMiddlewares } from "../layers/infrastructure/middlewares/SocketMiddlewares.js";
 import { BackgroundTask } from "./BackgroundTask.js";
 import { SocketService } from "../layers/application/SocketService.js";
+import { SettingRoutes } from "../layers/infrastructure/routes/SettingRoutes.js";
+import { SettingController } from "../layers/infrastructure/controllers/SettingController.js";
+import { SettingService } from "../layers/application/SettingService.js";
+import { SettingRepository } from "../layers/domain/repositories/SettingRepository.js";
 
 class ServerApp {
     constructor() {
@@ -121,6 +125,16 @@ class ServerApp {
             server_contants.server_config.routes.whatsapp,
             new WhatsAppRoutes(new WhatsAppController()).routes()
         );
+
+        // settings routes
+        this.app.use(
+            server_contants.server_config.routes.setting,
+            new SettingRoutes(
+                new SettingController(
+                    new SettingService(new SettingRepository())
+                )
+            ).routes()
+        );
     }
 
     socket() {
@@ -142,6 +156,8 @@ class ServerApp {
 
         // listeners
         background_manager.sendMessageWhatsAppToUser();
+        background_manager.sendExpiredConversation();
+        background_manager.conversationAssignmentToAgent();
     }
 
     listen() {

@@ -14,6 +14,10 @@ class ConversationService extends BaseService {
     async upload(data) {
         return await this.repository.upload(data);
     }
+
+    async getConversationActiveClient(user) {
+        return await this.repository.getConversationActiveClient(user);
+    }
 }
 
 export { ConversationService };

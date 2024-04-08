@@ -2,6 +2,7 @@ import * as constants from "../app/constants.js";
 import WhatsApp from "whatsapp-business";
 import { __dirname } from "../system.variables.js";
 import { ConversationRepository } from "../layers/domain/repositories/ConversationRepositorys.js";
+import { ScheduledTask } from "../app/ScheduledTask.js";
 
 const { WABAClient, WebhookClient } = WhatsApp;
 
@@ -30,7 +31,7 @@ class WhatsAppManager {
         return this;
     }
 
-    async sendTextMessage({ recipient_number, message }) {
+    sendTextMessage = async ({ recipient_number, message }) => {
         try {
             const ws_response = await this.ws_client.sendMessage({
                 to: recipient_number,
@@ -56,9 +57,9 @@ class WhatsAppManager {
                 msg: constants.generals.messages.error_server,
             };
         }
-    }
+    };
 
-    async sendDocumentMessage(document_message) {
+    sendDocumentMessage = async (document_message) => {
         try {
             const { to, ...data } = document_message;
 
@@ -88,6 +89,7 @@ class WhatsAppManager {
 
     sendMessage = async ({ to, type, content }) => {
         let message_process = null;
+        const scheduled_task = new ScheduledTask();
 
         switch (type) {
             case constants.whatsapp.messages.types.text:
@@ -95,12 +97,39 @@ class WhatsAppManager {
                     recipient_number: to,
                     message: content.body.text,
                 });
+
+                if (!message_process.ok) {
+                    scheduled_task.sendScheduledTask({
+                        callback: this.sendTextMessage,
+                        id: Math.random() * 1000,
+                        data: {
+                            recipient_number: to,
+                            message: content.body.text,
+                        },
+                        type: constants.celery.scheduler.types.FIVE_SECONDS
+                    });
+                }
+
                 break;
             case constants.whatsapp.messages.types.document:
                 message_process = await this.sendDocumentMessage({
                     to: to,
                     ...content,
                 });
+
+                console.log("message process", message_process);
+
+                if (!message_process.ok) {
+                    scheduled_task.sendScheduledTask({
+                        callback: this.sendDocumentMessage,
+                        id: Math.random() * 1000,
+                        data: {
+                            to: to,
+                            ...content,
+                        },
+                        type: constants.celery.scheduler.types.FIVE_SECONDS
+                    });
+                }
                 break;
             default:
                 message_process = {
@@ -116,29 +145,8 @@ class WhatsAppManager {
 
     receivedMessage = async (payload, contact) => {
         try {
-            let payload_message = null;
-
-            switch (payload.type) {
-                case constants.whatsapp.messages.types.text:
-                    payload_message = payload;
-                    break;
-                case constants.whatsapp.messages.types.document:
-                    // get url media
-                    const file_id = await this.ws_client.getMedia(payload.document.id);
-
-                    // download file whatsapp
-                    const path_file = `${__dirname}/public/attach/${payload.document.filename}`
-                    const media_process = await this.ws_client.downloadMedia(file_id.url, path_file);
-
-                    payload_message = {};
-                    break;
-                default:
-                    break;
-            }
-
             // save message in database
-            await this.conversation_repository.create(payload_message);
-
+            await this.conversation_repository.create(payload);
 
             /*
             const messageId = payload.id.toString();
@@ -164,7 +172,7 @@ class WhatsAppManager {
             onMessageReceived: this.receivedMessage,
             onError: (payload) => {
                 console.log("WEBHOOK ERROR ->", payload);
-            }
+            },
         });
     }
 }

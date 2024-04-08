@@ -21,9 +21,9 @@ class BaseRoutes extends BaseCRUD {
         );
     }
 
-    update(middlewares = []) {
+    update(endpoint = "update", middlewares = []) {
         this.router.put(
-            "/update",
+            `/${endpoint}`,
             [...middlewares, this.middlewares.validateFields],
             this.controller.update
         );

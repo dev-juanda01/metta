@@ -21,7 +21,7 @@ export const Message = mongoose.Schema({
     body: Schema.Types.Mixed,
     ws_id: {
         type: String,
-        required: true
+        required: false
     },
     timestamp: String,
     is_read: {

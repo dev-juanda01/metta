@@ -1,4 +1,5 @@
 import { BaseRoutes } from "./BaseRoutes.js";
+import * as constants from "../../../app/constants.js";
 
 class UserRoutes extends BaseRoutes {
     constructor(controller) {
@@ -10,6 +11,8 @@ class UserRoutes extends BaseRoutes {
             this.middlewares.isNotEmtyField("password"),
             this.middlewares.isNotEmtyField("email"),
             this.middlewares.isEmailValid("email"),
+            this.middlewares.isNotEmtyField("role"),
+            this.middlewares.isInCollection("role", constants.users.roles.all),
         ]);
     }
 

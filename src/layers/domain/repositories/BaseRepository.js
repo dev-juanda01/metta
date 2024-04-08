@@ -30,9 +30,9 @@ class BaseRepository extends BaseCRUD {
         }
     }
 
-    update(id, data) {
+    async update(id, data) {
         try {
-            const result = this.model.findOneAndUpdate({ uuid: id }, data);
+            const result = await this.model.findOneAndUpdate({ uuid: id }, data, { new: true });
 
             if (!result) {
                 return {
@@ -101,7 +101,7 @@ class BaseRepository extends BaseCRUD {
             return {
                 ok: true,
                 status: constants.generals.code_status.STATUS_200,
-                result: result._doc,
+                result,
             };
         } catch (error) {
             console.log(error);

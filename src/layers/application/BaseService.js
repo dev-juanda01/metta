@@ -10,8 +10,8 @@ class BaseService extends BaseCRUD {
         return this.repository.create(data);
     }
 
-    update(id, data) {
-        return this.repository.update(id, data);
+    async update(id, data) {
+        return await this.repository.update(id, data);
     }
 
     async getAll() {

@@ -13,6 +13,10 @@ const Conversation = mongoose.Schema({
     user: String,
     client: String,
     messages: [Message],
+    is_activate: {
+        type: Boolean,
+        default: true,
+    }
 });
 
 export default mongoose.model("Conversation", Conversation);

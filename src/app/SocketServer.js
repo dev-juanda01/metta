@@ -44,16 +44,7 @@ class SocketServer {
                     new ClientRepository()
                 );
 
-                const list_clients = await client_service.getAll();
-
-                if (list_clients.ok) {
-                    list_clients.result = list_clients.result.map((client) => {
-                        const { phone, name, uuid, ...rest } = client;
-
-                        return { phone, name, uuid };
-                    });
-                }
-
+                const list_clients = await client_service.getClientsByUserRole(socket.uuid);
                 socket.emit(constants.socket.events.list_clients, list_clients);
 
                 // list conversations by user
@@ -67,34 +58,11 @@ class SocketServer {
                         let conversations = null;
 
                         if (data) {
-                            conversations =
-                                await conversation_service.getOneByField({
-                                    field: "client",
-                                    value: data.uuid,
-                                });
 
-                            if (
-                                conversations.status ===
-                                constants.generals.code_status.STATUS_404
-                            ) {
-                                conversations = {
-                                    ok: true,
-                                    status: constants.generals.code_status
-                                        .STATUS_200,
-                                    result: {
-                                        messages: [],
-                                    },
-                                };
-                            }
+                            conversations = await conversation_service.getConversationActiveClient(data.uuid);
 
-                            if (
-                                conversations.status !==
-                                constants.generals.code_status.STATUS_500
-                            ) {
-                                const client_chat =
-                                    await client_service.getById(
-                                        data.uuid
-                                    );
+                            if (conversations.ok) {
+                                const client_chat = await client_service.getById(data.uuid);
 
                                 if (client_chat.ok) {
                                     conversations.result = {
@@ -110,10 +78,8 @@ class SocketServer {
                         } else {
                             conversations = {
                                 ok: false,
-                                status: constants.generals.code_status
-                                    .STATUS_400,
-                                msg: constants.generals.messages
-                                    .data_not_provider,
+                                status: constants.generals.code_status.STATUS_400,
+                                msg: constants.generals.messages.data_not_provider,
                             };
                         }
 

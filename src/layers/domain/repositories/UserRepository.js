@@ -2,6 +2,7 @@ import * as constants from "../../../app/constants.js";
 import User from "../models/User.js";
 import bcryptjs from "bcryptjs";
 import { BaseRepository } from "./BaseRepository.js";
+import { SettingRepository } from "./SettingRepository.js";
 
 class UserRepository extends BaseRepository {
     constructor() {
@@ -16,7 +17,18 @@ class UserRepository extends BaseRepository {
         const salt = bcryptjs.genSaltSync();
         data.password = bcryptjs.hashSync(data.password, salt);
 
-        return super.create(data);
+        // create user
+        let response_created = await super.create(data);
+
+        // create a basic settings to user, only user admin or super_admin role
+        if (data.role !== constants.users.roles.AGENT) {
+            const setting_repository = new SettingRepository();
+            await setting_repository.create({
+                user: response_created.result.uuid,
+            });
+        }
+
+        return response_created;
     }
 
     async verifyUserEmail(email) {
@@ -48,7 +60,6 @@ class UserRepository extends BaseRepository {
     }
 
     /**
-     * 
      * @param {string} field field reference search a value
      * @param {string} value value filter to query
      * @returns return a object prevalidate
@@ -75,7 +86,7 @@ class UserRepository extends BaseRepository {
     }
 
     /**
-     * 
+     *
      * @param {object} user document founded to validate user
      * @returns object with validation user
      */
@@ -88,7 +99,11 @@ class UserRepository extends BaseRepository {
             };
         }
 
-        return { ok: true, status: constants.generals.code_status.STATUS_200, user };
+        return {
+            ok: true,
+            status: constants.generals.code_status.STATUS_200,
+            user,
+        };
     }
 
     /**

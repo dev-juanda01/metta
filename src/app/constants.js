@@ -19,6 +19,7 @@ const generals = {
         not_exists: "Register not exist",
         success_process: "Success process!!",
         unauthorized: "unauthorized",
+        forbiden: "forbiden error",
         data_not_provider: "data not provider",
     },
     types: {
@@ -38,6 +39,7 @@ const server_config = {
         conversation: "/api/conversations",
         whatsapp: "/api/whatsapp/config",
         auth: "/api/auth/",
+        setting: "/api/settings"
     },
     morgan_mode: "dev",
 };
@@ -64,7 +66,17 @@ const users = {
     email_already_exists: "The user with this email already exists",
     user_not_exists: "User not exists in database",
     password_incorrect: "Correo o contraseña son incorrectos",
+    roles: {
+        AGENT: "AGENT",
+        ADMIN: "ADMIN",
+        SUPER_ADMIN: "SUPER_ADMIN",
+        all: ["AGENT", "ADMIN", "SUPER_ADMIN"]
+    }
 };
+
+const conversation = {
+    expired_conversation: "Esta conversación ha expirado"
+}
 
 const files = {
     error_upload: "Error upload files process",
@@ -93,6 +105,16 @@ const celery = {
     backend: env_server.BACKEND_CELERY,
     tasks: {
         send_message: "send.message.user",
+        send_expired_conversation: "send.expired.conversation",
+        send_assigment_conversation: "assigment.conversation"
+    },
+    scheduler: {
+        task_scheduled: "task.scheduled.every.five.seconds",
+        task_scheduled_one_minute: "task.scheduled.every.one.minute",
+        types: {
+            FIVE_SECONDS: "FIVE_SECONDS",
+            ONE_MINUTE: "ONE_MINUTE"
+        }
     },
 };
 
@@ -105,6 +127,8 @@ const socket = {
         list_messages: "list:messages:user",
         send_message: "send:message",
         received_message: "received:message",
+        expired_conversation: "expired:conversation",
+        assigment_client: "assigment:client"
     },
     logs: {
         connected: "Socket connected",
@@ -125,4 +149,5 @@ export {
     celery,
     socket,
     files,
+    conversation
 };
