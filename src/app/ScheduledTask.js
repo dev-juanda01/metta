@@ -1,5 +1,6 @@
 import { SimpleIntervalJob, Task, ToadScheduler } from "toad-scheduler";
 import * as constants from "./constants.js";
+import { BackgroundTask } from "./BackgroundTask.js";
 
 class ScheduledTask {
     constructor() {
@@ -25,8 +26,7 @@ class ScheduledTask {
      * @param {string} id identifier of the task to be executed
      * @param {function} callback function process
      */
-    sendScheduledTask({ callback, id, data, type }) {
-
+    sendScheduledTask({ id, data, type, ...rest }) {
         if (type === constants.celery.scheduler.types.FIVE_SECONDS) {
             const incoming_task = this.task_stack.five_seconds.find(
                 (current_task) => current_task.id === id
@@ -35,10 +35,10 @@ class ScheduledTask {
             if (!incoming_task) {
                 const new_task = {
                     id,
-                    callback,
                     data,
                     complete: false,
                     process: false,
+                    ...rest,
                 };
 
                 this.task_stack.five_seconds.push(new_task);
@@ -52,14 +52,23 @@ class ScheduledTask {
             if (!incoming_task) {
                 const new_task = {
                     id,
-                    callback,
                     data,
                     complete: false,
-                    process: false,
+                    ...rest,
                 };
 
                 this.task_stack.one_minute.push(new_task);
             }
+        }
+    }
+
+    completeTaskOneMinute(id) {
+        const current_task = this.task_stack.one_minute.find(
+            (task) => task.id === id
+        );
+
+        if (current_task) {
+            current_task.complete = true;
         }
     }
 
@@ -68,25 +77,26 @@ class ScheduledTask {
      */
     scheduledTaskWorker() {
         // tasks scheduled every five seconds
-        this.scheduler.addSimpleIntervalJob(
-            this.tasksScheduledEveryFiveSeconds()
-        );
+        this.tasksScheduledEveryFiveSeconds();
 
         // tasks scheduled every one minute
-        this.scheduler.addSimpleIntervalJob(
-            this.tasksScheduledEveryOneMinute()
-        );
+        this.tasksScheduledEveryOneMinute();
     }
 
     tasksScheduledEveryFiveSeconds() {
         const scheduleTask = new Task(
             constants.celery.scheduler.task_scheduled,
             async () => {
-                this.task_stack.five_seconds = this.task_stack.five_seconds.filter(
-                    (current_task) => current_task.complete !== true
-                );
+                this.task_stack.five_seconds =
+                    this.task_stack.five_seconds.filter(
+                        (current_task) => current_task.complete !== true
+                    );
 
-                for (let index = 0; index < this.task_stack.five_seconds.length; index++) {
+                for (
+                    let index = 0;
+                    index < this.task_stack.five_seconds.length;
+                    index++
+                ) {
                     const currentTask = this.task_stack.five_seconds[index];
 
                     if (!currentTask.process) {
@@ -103,35 +113,41 @@ class ScheduledTask {
             }
         );
 
-        return new SimpleIntervalJob({ seconds: 5 }, scheduleTask);
+        const job = new SimpleIntervalJob({ seconds: 5 }, scheduleTask);
+        this.scheduler.addSimpleIntervalJob(job);
     }
 
     tasksScheduledEveryOneMinute() {
         const scheduleTask = new Task(
             constants.celery.scheduler.task_scheduled_one_minute,
             async () => {
+                console.log(
+                    "SCHEDULED TASK ONE MINUTE -> ",
+                    this.task_stack.one_minute
+                );
+
                 this.task_stack.one_minute = this.task_stack.one_minute.filter(
                     (current_task) => current_task.complete !== true
                 );
 
-                for (let index = 0; index < this.task_stack.one_minute.length; index++) {
+                for (
+                    let index = 0;
+                    index < this.task_stack.one_minute.length;
+                    index++
+                ) {
                     const currentTask = this.task_stack.one_minute[index];
 
-                    if (!currentTask.process) {
-                        currentTask.process = true;
-                        const response_callback = await currentTask.callback(
-                            currentTask.data
-                        );
-
-                        response_callback.ok
-                            ? (currentTask.complete = true)
-                            : (currentTask.process = false);
-                    }
+                    this.background_task = new BackgroundTask();
+                    await this.background_task.sendBackgroundTask(
+                        currentTask.celery_task,
+                        [currentTask.data]
+                    );
                 }
             }
         );
 
-        return new SimpleIntervalJob({ seconds: 60 }, scheduleTask);
+        const job = new SimpleIntervalJob({ seconds: 60 }, scheduleTask);
+        this.scheduler.addSimpleIntervalJob(job);
     }
 }
 

@@ -9,6 +9,7 @@ import { ManagerFile } from "../../../utils/ManagerFile.js";
 import { __dirname } from "../../../system.variables.js";
 import { ScheduledTask } from "../../../app/ScheduledTask.js";
 import { SettingRepository } from "./SettingRepository.js";
+import { UserRepository } from "./UserRepository.js";
 
 class ConversationRepository extends BaseRepository {
     constructor(ws_manager) {
@@ -66,7 +67,7 @@ class ConversationRepository extends BaseRepository {
                       }
                     : data[data.type],
                 ws_id: data.id,
-                date: new Date()
+                date: new Date(),
             };
 
             if (conversation_activate) {
@@ -123,7 +124,32 @@ class ConversationRepository extends BaseRepository {
             }
         } else {
             // TODO: register client in database
-            // TODO: assigment client to user
+            const new_client = await client_respository.create({
+                name: `+${data.from.slice(0, 2)} ${data.from.slice(2)}`,
+                phone: data.from,
+            });
+
+            if (new_client.ok) {
+                data = {
+                    ...data,
+                    uuid: uuid(),
+                    from: new_client.result.uuid,
+                    body: data.text
+                        ? {
+                              text: data.text.body,
+                          }
+                        : data[data.type],
+                    ws_id: data.id,
+                    date: new Date(),
+                    client: new_client.result._doc,
+                };
+
+                // TODO: assigment client to user
+                await background_manager.sendBackgroundTask(
+                    constants.celery.tasks.send_assigment_conversation,
+                    [data]
+                );
+            }
         }
     }
 
@@ -253,9 +279,9 @@ class ConversationRepository extends BaseRepository {
     async upload({ props, files }) {
         try {
             // TODO: find conversation
-            let conversation = await this.getOneByField({
-                field: "client",
-                value: props.to,
+            let conversation = await this.model.findOne({
+                client: props.to,
+                is_activate: true,
             });
 
             // TODO: create conversation
@@ -311,11 +337,14 @@ class ConversationRepository extends BaseRepository {
             const data_file = payload[payload.type];
             const extension_file = data_file.filename.split(".")[1];
 
+            const filename_load = `${uuid()}.${extension_file}`;
+
             payload.body = {
-                file: `${uuid()}.${extension_file}`,
+                file: filename_load,
                 extension: extension_file,
                 name: data_file.filename,
                 id: data_file.id,
+                url: `${constants.server_config.server_host_dir_attach}/${conversation}/${filename_load}`,
             };
 
             const saved_file = await this.saveMediaFileConversation({
@@ -388,12 +417,10 @@ class ConversationRepository extends BaseRepository {
 
     async getClientsConversationActiveWithUser(uuid_user) {
         try {
-            let clients_associate = await this.model.find(
-                { user: uuid_user, is_activate: true },
-                { client: 1 }
-            );
-
-            clients_associate = clients_associate.map((doc) => doc.client);
+            let clients_associate = await this.model.distinct("client", {
+                user: uuid_user,
+                is_activate: true,
+            });
 
             return {
                 ok: true,
@@ -422,6 +449,38 @@ class ConversationRepository extends BaseRepository {
                 ok: true,
                 status: constants.generals.code_status.STATUS_200,
                 result: conversation_client._doc,
+            };
+        } catch (error) {
+            console.log(error);
+
+            return {
+                ok: false,
+                status: constants.generals.code_status.STATUS_500,
+                msg: constants.generals.messages.error_server,
+            };
+        }
+    }
+
+    async getConversationClient(user_uuid, client_uuid) {
+        try {
+            const user_repository = new UserRepository();
+            const user_role = await user_repository.getById(user_uuid);
+
+            if (!user_role.ok) return user_role;
+
+            if (user_role.result.role === constants.users.roles.AGENT) {
+                return this.getConversationActiveClient(client_uuid);
+            }
+
+            const historical_conversation = await this.model.distinct(
+                "messages",
+                { client: client_uuid }
+            );
+
+            return {
+                ok: true,
+                status: constants.generals.code_status.STATUS_200,
+                result: { messages: historical_conversation },
             };
         } catch (error) {
             console.log(error);

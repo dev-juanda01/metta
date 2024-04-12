@@ -14,6 +14,12 @@ class SettingController extends BaseController {
 
         res.status(status).json(extras);
     };
+
+    getDefaultSetting = async (req, res) => {
+        const { ok, status, ...extras } = await this.service.getDefaultSetting();
+
+        res.status(status).json(extras);
+    };
 }
 
 export { SettingController };

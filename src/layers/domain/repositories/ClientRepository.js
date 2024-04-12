@@ -16,7 +16,7 @@ class ClientRepository extends BaseRepository {
 
             if (!user_role.ok) return user_role;
 
-            let clients = await this.model.find({}, { phone: 1, name: 1, uuid: 1 });
+            let clients = await this.model.find({}, { phone: 1, name: 1, uuid: 1, _id: 0 });
 
             if (user_role.result.role === constants.users.roles.AGENT) {
                 const conversation_repository = new ConversationRepository();

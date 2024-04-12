@@ -59,7 +59,7 @@ class SocketServer {
 
                         if (data) {
 
-                            conversations = await conversation_service.getConversationActiveClient(data.uuid);
+                            conversations = await conversation_service.getConversationClient(socket.uuid, data.uuid);
 
                             if (conversations.ok) {
                                 const client_chat = await client_service.getById(data.uuid);

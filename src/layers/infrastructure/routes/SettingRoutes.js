@@ -27,9 +27,18 @@ class SettingRoutes extends BaseRoutes {
         ]);
     }
 
+    getDefaultSetting() {
+        this.router.get(
+            "/default",
+            [this.middlewares_encoded.validateTokenRequest],
+            this.controller.getDefaultSetting
+        );
+    }
+
     routes() {
         this.update();
         this.updateExpiredTime();
+        this.getDefaultSetting();
 
         return this.router;
     }

@@ -36,6 +36,7 @@ import { SettingRoutes } from "../layers/infrastructure/routes/SettingRoutes.js"
 import { SettingController } from "../layers/infrastructure/controllers/SettingController.js";
 import { SettingService } from "../layers/application/SettingService.js";
 import { SettingRepository } from "../layers/domain/repositories/SettingRepository.js";
+import { ScheduledTask } from "./ScheduledTask.js";
 
 class ServerApp {
     constructor() {
@@ -151,7 +152,8 @@ class ServerApp {
     celery() {
         const background_manager = new BackgroundTask(
             this.io,
-            new SocketService()
+            new SocketService(),
+            new ScheduledTask()
         );
 
         // listeners
