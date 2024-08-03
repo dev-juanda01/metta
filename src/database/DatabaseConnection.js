@@ -1,17 +1,17 @@
 import mongoose from "mongoose";
-import { db_config } from "../app/constants.js";
+import { AppConstants } from "#app";
 
 class DatabaseConnection {
 
     async connect() {
         try {
-            await mongoose.connect(db_config.string_connection);
+            await mongoose.connect(AppConstants.db_config.string_connection);
 
-            console.log(db_config.message_connect);
+            console.log(AppConstants.db_config.message_connect);
         } catch (error) {
             console.log(error);
 
-            throw new Error(db_config.message_error_connect);
+            throw new Error(AppConstants.db_config.message_error_connect);
         }
     }
 }
