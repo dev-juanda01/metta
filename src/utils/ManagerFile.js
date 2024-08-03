@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { v4 as uuid } from "uuid";
-import { __dirname } from "../system.variables.js";
-import * as constants from "../app/constants.js";
+import { __dirname } from "#core";
+import { AppConstants } from "#app";
 
 class ManagerFile {
     uploaded(files, folder = "") {
@@ -26,8 +26,8 @@ class ManagerFile {
                 value.mv(uploadPath, (error) => {
                     return reject({
                         ok: false,
-                        status: constants.generals.code_status.STATUS_400,
-                        msg: constants.files.error_upload,
+                        status: AppConstants.generals.code_status.STATUS_400,
+                        msg: AppConstants.files.error_upload,
                     });
                 });
 
