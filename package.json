@@ -1,6 +1,6 @@
 {
-  "name": "whatsapp-sendesk",
-  "version": "1.0.0",
+  "name": "metta",
+  "version": "4.2.1",
   "main": "src/app.js",
   "license": "MIT",
   "dependencies": {
