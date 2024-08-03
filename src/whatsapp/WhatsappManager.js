@@ -1,23 +1,27 @@
-import * as constants from "../app/constants.js";
 import WhatsApp from "whatsapp-business";
-import { __dirname } from "../system.variables.js";
-import { ConversationRepository } from "../layers/domain/repositories/ConversationRepositorys.js";
-import { ScheduledTask } from "../app/ScheduledTask.js";
+import { __dirname } from "#core";
+import { AppConstants, ScheduledTask } from "#app";
+import { ConversationRepository } from "#layers/domain/repositories";
 
 const { WABAClient, WebhookClient } = WhatsApp;
 
 class WhatsAppManager {
+    /**
+     * Build a whatsApp manager class
+     * @param {object} expressApp instance app express
+     * @returns context WhatsAppManager class
+     */
     constructor(expressApp) {
         this.ws_client = new WABAClient({
-            accountId: constants.whatsapp.account_id,
-            apiToken: constants.whatsapp.api_access_token,
-            phoneId: constants.whatsapp.phone_number_id,
+            accountId: AppConstants.whatsapp.account_id,
+            apiToken: AppConstants.whatsapp.api_access_token,
+            phoneId: AppConstants.whatsapp.phone_number_id,
         });
 
         this.ws_webhook = new WebhookClient({
-            token: constants.whatsapp.webhook_verification_token,
-            path: constants.whatsapp.webhook_endpoint,
-            port: constants.whatsapp.listener_port,
+            token: AppConstants.whatsapp.webhook_verification_token,
+            path: AppConstants.whatsapp.webhook_endpoint,
+            port: AppConstants.whatsapp.listener_port,
         });
 
         this.conversation_repository = new ConversationRepository(this);
@@ -31,11 +35,16 @@ class WhatsAppManager {
         return this;
     }
 
+    /**
+     * Send text message to whatsapp
+     * @param {{ recipient_number: string, message: string }} param0 params to send message
+     * @returns response with process send message
+     */
     sendTextMessage = async ({ recipient_number, message }) => {
         try {
             const ws_response = await this.ws_client.sendMessage({
                 to: recipient_number,
-                type: constants.whatsapp.messages.types.text,
+                type: AppConstants.whatsapp.messages.types.text,
                 text: {
                     body: message,
                 },
@@ -43,7 +52,7 @@ class WhatsAppManager {
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
                 result: {
                     id: ws_response.messages[0].id,
                 },
@@ -53,12 +62,17 @@ class WhatsAppManager {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     };
 
+    /**
+     * Send document message to whatsapp
+     * @param {{ to: string, data: object }} document_message object with data to send document
+     * @returns response with process send message
+     */
     sendDocumentMessage = async (document_message) => {
         try {
             const { to, ...data } = document_message;
@@ -87,6 +101,11 @@ class WhatsAppManager {
         }
     }
 
+    /**
+     * Send message to whatsapp
+     * @param {{ to: string, type: string, content: object }} param0 content to send message whatsapp
+     * @returns response with process send message
+     */
     sendMessage = async ({ to, type, content }) => {
         let message_process = null;
         const scheduled_task = new ScheduledTask();
@@ -143,6 +162,11 @@ class WhatsAppManager {
         return message_process;
     };
 
+    /**
+     * Received whatsapp message
+     * @param {object} payload data to received whatsapp
+     * @param {string} contact number contact received message
+     */
     receivedMessage = async (payload, contact) => {
         try {
             // save message in database
@@ -160,12 +184,18 @@ class WhatsAppManager {
         }
     };
 
+    /**
+     * Initialize whatsapp server
+     */
     startedServer() {
         console.log(
-            `${constants.whatsapp.messages.run_server}:${constants.whatsapp.listener_port}`
+            `${AppConstants.whatsapp.messages.run_server}:${AppConstants.whatsapp.listener_port}`
         );
     }
 
+    /**
+     * Running or listener webhooks response API WhatsApp
+     */
     runningWebhooks() {
         this.ws_webhook.initWebhook({
             onStartListening: this.startedServer,
