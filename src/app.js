@@ -1,5 +1,11 @@
-import { ServerApp } from "./app/ServerApp.js";
+import { ServerApp } from "#app";
 
-const server_app = new ServerApp();
+function main(...params) {
 
-server_app.running();
+    // create instance server app
+    const server_app = new ServerApp();
+    server_app.running();
+
+}
+
+main();
