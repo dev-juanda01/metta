@@ -1,6 +1,6 @@
-import { SimpleIntervalJob, Task, ToadScheduler } from "toad-scheduler";
-import * as constants from "./constants.js";
+import { AppConstants } from "#app";
 import { BackgroundTask } from "./BackgroundTask.js";
+import { SimpleIntervalJob, Task, ToadScheduler } from "toad-scheduler";
 
 class ScheduledTask {
     constructor() {
@@ -27,7 +27,7 @@ class ScheduledTask {
      * @param {function} callback function process
      */
     sendScheduledTask({ id, data, type, ...rest }) {
-        if (type === constants.celery.scheduler.types.FIVE_SECONDS) {
+        if (type === AppConstants.celery.scheduler.types.FIVE_SECONDS) {
             const incoming_task = this.task_stack.five_seconds.find(
                 (current_task) => current_task.id === id
             );
@@ -85,7 +85,7 @@ class ScheduledTask {
 
     tasksScheduledEveryFiveSeconds() {
         const scheduleTask = new Task(
-            constants.celery.scheduler.task_scheduled,
+            AppConstants.celery.scheduler.task_scheduled,
             async () => {
                 this.task_stack.five_seconds =
                     this.task_stack.five_seconds.filter(
@@ -119,7 +119,7 @@ class ScheduledTask {
 
     tasksScheduledEveryOneMinute() {
         const scheduleTask = new Task(
-            constants.celery.scheduler.task_scheduled_one_minute,
+            AppConstants.celery.scheduler.task_scheduled_one_minute,
             async () => {
                 console.log(
                     "SCHEDULED TASK ONE MINUTE -> ",

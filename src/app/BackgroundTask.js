@@ -1,5 +1,5 @@
 import celery from "celery-node";
-import * as constants from "./constants.js";
+import { AppConstants } from "#app";
 import User from "../layers/domain/models/User.js";
 import { v4 as uuid } from "uuid";
 import { SettingRepository } from "../layers/domain/repositories/SettingRepository.js";
@@ -8,13 +8,13 @@ import { ConversationRepository } from "../layers/domain/repositories/Conversati
 class BackgroundTask {
     constructor(io, socket_service, scheduled_task) {
         this.client = celery.createClient(
-            constants.celery.broker,
-            constants.celery.backend
+            AppConstants.celery.broker,
+            AppConstants.celery.backend
         );
 
         this.worker = celery.createWorker(
-            constants.celery.broker,
-            constants.celery.backend
+            AppConstants.celery.broker,
+            AppConstants.celery.backend
         );
 
         this.io = io;
@@ -49,16 +49,16 @@ class BackgroundTask {
     }
 
     sendMessageWhatsAppToUser() {
-        this.worker.register(constants.celery.tasks.send_message, (message) => {
+        this.worker.register(AppConstants.celery.tasks.send_message, (message) => {
             const user_socket = this.socket_service.users[message.to];
 
             if (user_socket) {
                 this.io
-                    .of(constants.socket.namespaces.chats)
+                    .of(AppConstants.socket.namespaces.chats)
                     .to(user_socket.socket_id)
-                    .emit(constants.socket.events.received_message, {
+                    .emit(AppConstants.socket.events.received_message, {
                         ok: true,
-                        status: constants.generals.code_status.STATUS_200,
+                        status: AppConstants.generals.code_status.STATUS_200,
                         result: message,
                     });
             }
@@ -69,17 +69,17 @@ class BackgroundTask {
 
     sendExpiredConversation() {
         this.worker.register(
-            constants.celery.tasks.send_expired_conversation,
+            AppConstants.celery.tasks.send_expired_conversation,
             (message) => {
                 const user_socket = this.socket_service.users[message.from];
 
                 if (user_socket) {
                     this.io
-                        .of(constants.socket.namespaces.chats)
+                        .of(AppConstants.socket.namespaces.chats)
                         .to(user_socket.socket_id)
-                        .emit(constants.socket.events.expired_conversation, {
+                        .emit(AppConstants.socket.events.expired_conversation, {
                             ok: true,
-                            status: constants.generals.code_status.STATUS_200,
+                            status: AppConstants.generals.code_status.STATUS_200,
                             result: message.text,
                         });
                 }
@@ -91,7 +91,7 @@ class BackgroundTask {
 
     conversationAssignmentToAgent() {
         this.worker.register(
-            constants.celery.tasks.send_assigment_conversation,
+            AppConstants.celery.tasks.send_assigment_conversation,
             async (message_client) => {
                 try {
                     console.log("TASK INIT ->", message_client);
@@ -107,7 +107,7 @@ class BackgroundTask {
                                 current_active_conversation: {
                                     $lt: setting_admin.maximum_active_conversation,
                                 },
-                                role: constants.users.roles.AGENT,
+                                role: AppConstants.users.roles.AGENT,
                             },
                         },
                         {
@@ -125,9 +125,9 @@ class BackgroundTask {
                         this.scheduled_task.sendScheduledTask({
                             id: message_client.from,
                             data: message_client,
-                            type: constants.celery.scheduler.types.ONE_MINUTE,
+                            type: AppConstants.celery.scheduler.types.ONE_MINUTE,
                             celery_task:
-                                constants.celery.tasks
+                                AppConstants.celery.tasks
                                     .send_assigment_conversation,
                         });
                     } else {
@@ -162,13 +162,13 @@ class BackgroundTask {
                         if (user_socket) {
                             // emit socket
                             this.io
-                                .of(constants.socket.namespaces.chats)
+                                .of(AppConstants.socket.namespaces.chats)
                                 .to(user_socket.socket_id)
                                 .emit(
-                                    constants.socket.events.assigment_client,
+                                    AppConstants.socket.events.assigment_client,
                                     {
                                         ok: true,
-                                        status: constants.generals.code_status
+                                        status: AppConstants.generals.code_status
                                             .STATUS_200,
                                         result: message_client.client,
                                     }

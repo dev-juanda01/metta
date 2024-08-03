@@ -12,16 +12,31 @@
     "express-fileupload": "^1.5.0",
     "express-validator": "^7.0.1",
     "jsonwebtoken": "^9.0.2",
+    "mixin-support": "^1.0.4",
     "mongoose": "^8.2.0",
     "morgan": "^1.10.0",
     "socket.io": "^4.7.4",
     "toad-scheduler": "^3.0.1",
     "uuid": "^9.0.1",
-    "whatsapp-business": "^1.8.0"
+    "whatsapp-business": "^1.10.0"
   },
   "scripts": {
-    "dev": "nodemon src/app.js",
-    "start": "node src/app.js"
+    "dev": "node --watch src/app.js",
+    "start": "node src/app.js",
+    "update-exports": "nodemon --watch . --ext js --exec 'node ./src/script.exports.js'"
   },
-  "type": "module"
+  "type": "module",
+  "imports": {
+    "#core": "./src/index.js",
+    "#app": "./src/app/index.js",
+    "#utils": "./src/utils/index.js",
+    "#database": "./src/database/index.js",
+    "#whatsapp": "./src/whatsapp/index.js",
+    "#layers/application/services": "./src/layers/application/services/index.js",
+    "#layers/domain/models": "./src/layers/domain/models/index.js",
+    "#layers/domain/repositories": "./src/layers/domain/repositories/index.js",
+    "#layers/infrastructure/controllers": "./src/layers/infrastructure/controllers/index.js",
+    "#layers/infrastructure/middlewares": "./src/layers/infrastructure/middlewares/index.js",
+    "#layers/infrastructure/routes": "./src/layers/infrastructure/routes/index.js"
+  }
 }
