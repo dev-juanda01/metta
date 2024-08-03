@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import * as constants from "../../../app/constants.js";
+import { AppConstants } from "#app";
 
 const User = mongoose.Schema({
     uuid: {
@@ -21,7 +21,7 @@ const User = mongoose.Schema({
     },
     role: {
         type: String,
-        enum: constants.users.roles.all,
+        enum: AppConstants.users.roles.all,
     },
     current_active_conversation: { // current active conversations (agent)
         type: Number,

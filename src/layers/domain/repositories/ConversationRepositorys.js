@@ -1,7 +1,7 @@
 import fs from "fs";
 import Conversation from "../models/Conversation.js";
 import { v4 as uuid } from "uuid";
-import * as constants from "../../../app/constants.js";
+import { AppConstants } from "#app";
 import { BaseRepository } from "./BaseRepository.js";
 import { ClientRepository } from "./ClientRepository.js";
 import { BackgroundTask } from "../../../app/BackgroundTask.js";
@@ -31,8 +31,8 @@ class ConversationRepository extends BaseRepository {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }
@@ -87,7 +87,7 @@ class ConversationRepository extends BaseRepository {
 
                 // init celery task - send message
                 await background_manager.sendBackgroundTask(
-                    constants.celery.tasks.send_message,
+                    AppConstants.celery.tasks.send_message,
                     [data]
                 );
 
@@ -111,14 +111,14 @@ class ConversationRepository extends BaseRepository {
     
                     // init celery task
                     await background_manager.sendBackgroundTask(
-                        constants.celery.tasks.send_message,
+                        AppConstants.celery.tasks.send_message,
                         [data]
                     );
                     */
             } else {
                 // TODO: assigment client to user
                 await background_manager.sendBackgroundTask(
-                    constants.celery.tasks.send_assigment_conversation,
+                    AppConstants.celery.tasks.send_assigment_conversation,
                     [{ ...data, client: client_sender.result._doc }]
                 );
             }
@@ -146,7 +146,7 @@ class ConversationRepository extends BaseRepository {
 
                 // TODO: assigment client to user
                 await background_manager.sendBackgroundTask(
-                    constants.celery.tasks.send_assigment_conversation,
+                    AppConstants.celery.tasks.send_assigment_conversation,
                     [data]
                 );
             }
@@ -181,12 +181,12 @@ class ConversationRepository extends BaseRepository {
 
                 const background_manager = new BackgroundTask();
                 await background_manager.sendBackgroundTask(
-                    constants.celery.tasks.send_expired_conversation,
+                    AppConstants.celery.tasks.send_expired_conversation,
                     [
                         {
                             from: data.from,
                             text: `${
-                                constants.conversation.expired_conversation
+                                AppConstants.conversation.expired_conversation
                             } ${conversation_associate.date.toLocaleString()}`,
                         },
                     ]
@@ -194,8 +194,8 @@ class ConversationRepository extends BaseRepository {
 
                 return {
                     ok: false,
-                    status: constants.generals.code_status.STATUS_400,
-                    msg: constants.generals.messages.forbiden,
+                    status: AppConstants.generals.code_status.STATUS_400,
+                    msg: AppConstants.generals.messages.forbiden,
                 };
             }
         }
@@ -263,15 +263,15 @@ class ConversationRepository extends BaseRepository {
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
             };
         } catch (error) {
             console.log(error);
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }
@@ -308,10 +308,10 @@ class ConversationRepository extends BaseRepository {
                 body: {
                     ...files_upload.files.attach,
                     caption: props.caption,
-                    url: `${constants.server_config.server_host_dir_attach}/${conversation.result.uuid}/${files_upload.files.attach.file}`,
+                    url: `${AppConstants.server_config.server_host_dir_attach}/${conversation.result.uuid}/${files_upload.files.attach.file}`,
                 },
                 content: {
-                    link: `${constants.server_config.server_host_dir_attach}/${conversation.result.uuid}/${files_upload.files.attach.file}`,
+                    link: `${AppConstants.server_config.server_host_dir_attach}/${conversation.result.uuid}/${files_upload.files.attach.file}`,
                     caption: props.caption,
                     filename: files_upload.files.attach.name,
                 },
@@ -326,14 +326,14 @@ class ConversationRepository extends BaseRepository {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }
 
     async download(payload, conversation) {
-        if (payload.type !== constants.whatsapp.messages.types.text) {
+        if (payload.type !== AppConstants.whatsapp.messages.types.text) {
             const data_file = payload[payload.type];
             const extension_file = data_file.filename.split(".")[1];
 
@@ -344,7 +344,7 @@ class ConversationRepository extends BaseRepository {
                 extension: extension_file,
                 name: data_file.filename,
                 id: data_file.id,
-                url: `${constants.server_config.server_host_dir_attach}/${conversation}/${filename_load}`,
+                url: `${AppConstants.server_config.server_host_dir_attach}/${conversation}/${filename_load}`,
             };
 
             const saved_file = await this.saveMediaFileConversation({
@@ -363,7 +363,7 @@ class ConversationRepository extends BaseRepository {
                         conversation_folder: conversation,
                         filename: payload.body.file,
                     },
-                    type: constants.celery.scheduler.types.FIVE_SECONDS,
+                    type: AppConstants.celery.scheduler.types.FIVE_SECONDS,
                 });
             }
         }
@@ -393,15 +393,15 @@ class ConversationRepository extends BaseRepository {
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
             };
         } catch (error) {
             console.log(error);
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     };
@@ -424,7 +424,7 @@ class ConversationRepository extends BaseRepository {
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
                 result: clients_associate,
             };
         } catch (error) {
@@ -432,8 +432,8 @@ class ConversationRepository extends BaseRepository {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }
@@ -447,7 +447,7 @@ class ConversationRepository extends BaseRepository {
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
                 result: conversation_client._doc,
             };
         } catch (error) {
@@ -455,8 +455,8 @@ class ConversationRepository extends BaseRepository {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }
@@ -468,27 +468,26 @@ class ConversationRepository extends BaseRepository {
 
             if (!user_role.ok) return user_role;
 
-            if (user_role.result.role === constants.users.roles.AGENT) {
+            if (user_role.result.role === AppConstants.users.roles.AGENT) {
                 return this.getConversationActiveClient(client_uuid);
             }
 
-            const historical_conversation = await this.model.distinct(
-                "messages",
-                { client: client_uuid }
-            );
+            const historical_conversation = await this.model
+                .find({ client: client_uuid }, { date: 1, messages: 1, _id: 0 })
+                .sort({ date: 1 });
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_200,
-                result: { messages: historical_conversation },
+                status: AppConstants.generals.code_status.STATUS_200,
+                result: historical_conversation,
             };
         } catch (error) {
             console.log(error);
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }

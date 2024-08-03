@@ -1,4 +1,4 @@
-import * as constants from "../../../app/constants.js";
+import { AppConstants } from "#app";
 import Setting from "../models/Setting.js";
 import { BaseRepository } from "./BaseRepository.js";
 
@@ -15,7 +15,7 @@ class SettingRepository extends BaseRepository {
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
                 result: rest_setting,
             };
         } catch (error) {
@@ -23,8 +23,8 @@ class SettingRepository extends BaseRepository {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }

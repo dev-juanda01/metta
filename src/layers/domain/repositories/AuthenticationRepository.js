@@ -1,4 +1,4 @@
-import * as constants from "../../../app/constants.js";
+import { AppConstants } from "#app";
 import { UserRepository } from "./UserRepository.js";
 
 class AuthenticationRepository {
@@ -8,7 +8,7 @@ class AuthenticationRepository {
 
         if (
             typeof AuthenticationRepository.instance ===
-            constants.generals.types.DATA_TYPE_OBJECT
+            AppConstants.generals.types.DATA_TYPE_OBJECT
         ) {
             return AuthenticationRepository.instance;
         }
@@ -39,8 +39,8 @@ class AuthenticationRepository {
             // TODO: generate token access (JWT)
             const token_response = await this.manager_encoded.generateToken(
                 current_user.user.uuid,
-                constants.jwt.secret_jwt,
-                constants.jwt.expires_time_jwt
+                AppConstants.jwt.secret_jwt,
+                AppConstants.jwt.expires_time_jwt
             );
             if (!token_response.ok) return token_response;
 
@@ -48,8 +48,8 @@ class AuthenticationRepository {
             const refresh_token_response =
                 await this.manager_encoded.generateToken(
                     current_user.user.uuid,
-                    constants.jwt.secret_refresh_jwt,
-                    constants.jwt.expires_time_refresh_jwt
+                    AppConstants.jwt.secret_refresh_jwt,
+                    AppConstants.jwt.expires_time_refresh_jwt
                 );
 
             if (!refresh_token_response.ok) return refresh_token_response;
@@ -63,15 +63,15 @@ class AuthenticationRepository {
                 ok: true,
                 token: token_response.token,
                 refresh_token: refresh_token_response.token,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
             };
         } catch (error) {
             console.log(error);
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }
@@ -83,8 +83,8 @@ class AuthenticationRepository {
             if (!is_exists_refresh_token) {
                 return {
                     ok: false,
-                    msg: constants.jwt.invalid_refresh_token,
-                    status: constants.generals.code_status.STATUS_400,
+                    msg: AppConstants.jwt.invalid_refresh_token,
+                    status: AppConstants.generals.code_status.STATUS_400,
                 };
             }
 
@@ -94,7 +94,7 @@ class AuthenticationRepository {
             // verify token decoded
             const decoded = this.manager_encoded.validateToken(
                 refresh_token,
-                constants.jwt.secret_refresh_jwt
+                AppConstants.jwt.secret_refresh_jwt
             );
 
             if (!decoded.ok) return decoded;
@@ -105,22 +105,22 @@ class AuthenticationRepository {
             if (!user_db.ok) {
                 return {
                     ok: false,
-                    status: constants.generals.code_status.STATUS_400,
-                    msg: constants.jwt.user_not_decoded_token,
+                    status: AppConstants.generals.code_status.STATUS_400,
+                    msg: AppConstants.jwt.user_not_decoded_token,
                 };
             }
 
             const new_access_token = await this.manager_encoded.generateToken(
                 user_db.result.uuid,
-                constants.jwt.secret_jwt,
-                constants.jwt.expires_time_jwt
+                AppConstants.jwt.secret_jwt,
+                AppConstants.jwt.expires_time_jwt
             );
             if (!new_access_token.ok) return token_response;
 
             const new_refresh_token = await this.manager_encoded.generateToken(
                 user_db.result.uuid,
-                constants.jwt.secret_refresh_jwt,
-                constants.jwt.expires_time_refresh_jwt
+                AppConstants.jwt.secret_refresh_jwt,
+                AppConstants.jwt.expires_time_refresh_jwt
             );
             if (!new_refresh_token.ok) return new_refresh_token;
 
@@ -133,15 +133,15 @@ class AuthenticationRepository {
                 ok: true,
                 token: new_access_token.token,
                 refresh_token: new_refresh_token.token,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
             };
         } catch (error) {
             console.log(error);
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_200,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_200,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }

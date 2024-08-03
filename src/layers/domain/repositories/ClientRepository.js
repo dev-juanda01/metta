@@ -1,6 +1,6 @@
+import { AppConstants } from "#app";
 import Client from "../models/Client.js";
 import { BaseRepository } from "./BaseRepository.js";
-import * as constants from "../../../app/constants.js";
 import { UserRepository } from "./UserRepository.js";
 import { ConversationRepository } from "./ConversationRepositorys.js";
 
@@ -18,7 +18,7 @@ class ClientRepository extends BaseRepository {
 
             let clients = await this.model.find({}, { phone: 1, name: 1, uuid: 1, _id: 0 });
 
-            if (user_role.result.role === constants.users.roles.AGENT) {
+            if (user_role.result.role === AppConstants.users.roles.AGENT) {
                 const conversation_repository = new ConversationRepository();
                 const uuid_clients =
                     await conversation_repository.getClientsConversationActiveWithUser(
@@ -35,7 +35,7 @@ class ClientRepository extends BaseRepository {
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
                 result: clients,
             };
         } catch (error) {
@@ -43,8 +43,8 @@ class ClientRepository extends BaseRepository {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }

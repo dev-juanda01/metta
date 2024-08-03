@@ -1,4 +1,4 @@
-import * as constants from "../../../app/constants.js";
+import * as constants from "#utils";
 import User from "../models/User.js";
 import bcryptjs from "bcryptjs";
 import { BaseRepository } from "./BaseRepository.js";

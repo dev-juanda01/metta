@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import * as constants from "../../../app/constants.js";
 
 const Setting = mongoose.Schema({
     uuid: {

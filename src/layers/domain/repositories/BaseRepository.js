@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
-import * as constants from "../../../app/constants.js";
-import { BaseCRUD } from "../../application/BaseCRUD.js";
+import { AppConstants } from "#app";
+import { BaseCRUD } from "#layers/application/services";
 
 class BaseRepository extends BaseCRUD {
     constructor(model) {
@@ -16,7 +16,7 @@ class BaseRepository extends BaseCRUD {
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_201,
+                status: AppConstants.generals.code_status.STATUS_201,
                 result: result._doc,
             };
         } catch (error) {
@@ -24,8 +24,8 @@ class BaseRepository extends BaseCRUD {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }
@@ -37,14 +37,14 @@ class BaseRepository extends BaseCRUD {
             if (!result) {
                 return {
                     ok: false,
-                    status: constants.generals.code_status.STATUS_404,
-                    msg: constants.generals.messages.not_exists,
+                    status: AppConstants.generals.code_status.STATUS_404,
+                    msg: AppConstants.generals.messages.not_exists,
                 };
             }
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
                 result,
             };
         } catch (error) {
@@ -52,8 +52,8 @@ class BaseRepository extends BaseCRUD {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }
@@ -65,14 +65,14 @@ class BaseRepository extends BaseCRUD {
             if (!result) {
                 return {
                     ok: false,
-                    status: constants.generals.code_status.STATUS_404,
-                    msg: constants.generals.messages.not_exists,
+                    status: AppConstants.generals.code_status.STATUS_404,
+                    msg: AppConstants.generals.messages.not_exists,
                 };
             }
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
                 result,
             };
         } catch (error) {
@@ -80,8 +80,8 @@ class BaseRepository extends BaseCRUD {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }
@@ -93,14 +93,14 @@ class BaseRepository extends BaseCRUD {
             if (!result) {
                 return {
                     ok: false,
-                    status: constants.generals.code_status.STATUS_404,
-                    msg: constants.generals.messages.not_exists,
+                    status: AppConstants.generals.code_status.STATUS_404,
+                    msg: AppConstants.generals.messages.not_exists,
                 };
             }
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
                 result,
             };
         } catch (error) {
@@ -108,8 +108,8 @@ class BaseRepository extends BaseCRUD {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }
@@ -120,7 +120,7 @@ class BaseRepository extends BaseCRUD {
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
                 result,
             };
         } catch (error) {
@@ -128,8 +128,8 @@ class BaseRepository extends BaseCRUD {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }
