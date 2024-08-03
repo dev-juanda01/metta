@@ -1,7 +1,6 @@
 import express from "express";
-import { BaseCRUD } from "../../application/BaseCRUD.js";
-import { RoutesMiddlware } from "../middlewares/RoutesMiddleware.js";
-import { JsonWebTokenMiddleware } from "../middlewares/JsonWebTokenMiddleware.js";
+import { BaseCRUD } from "#layers/application/services";
+import { RoutesMiddlware, JsonWebTokenMiddleware } from "#layers/infrastructure/middlewares";
 
 class BaseRoutes extends BaseCRUD {
     constructor(controller) {

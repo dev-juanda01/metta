@@ -1,4 +1,4 @@
-import * as constants from "../../../app/constants.js";
+import { AppConstants } from "#app";
 import { UserRepository } from "../../domain/repositories/UserRepository.js";
 
 class SocketMiddlewares {
@@ -11,14 +11,14 @@ class SocketMiddlewares {
 
         const is_valid_token = this.manager_encoded.validateToken(
             token,
-            constants.jwt.secret_jwt
+            AppConstants.jwt.secret_jwt
         );
 
         if (!is_valid_token.ok) {
             const error = new Error(is_valid_token.msg);
             error.data = {
-                type: constants.generals.messages.unauthorized,
-                status: constants.generals.code_status.STATUS_401
+                type: AppConstants.generals.messages.unauthorized,
+                status: AppConstants.generals.code_status.STATUS_401
             }
             return next(error);
         }

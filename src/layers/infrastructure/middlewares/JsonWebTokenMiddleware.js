@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import * as constants from "../../../app/constants.js";
+import { AppConstants } from "#app";
 
 class JsonWebTokenMiddleware {
     /**
@@ -19,14 +19,14 @@ class JsonWebTokenMiddleware {
 
                         reject({
                             ok: false,
-                            msg: constants.jwt.failed_generate_jwt,
-                            status: constants.generals.code_status.STATUS_400,
+                            msg: AppConstants.jwt.failed_generate_jwt,
+                            status: AppConstants.generals.code_status.STATUS_400,
                         });
                     } else {
                         resolve({
                             ok: true,
                             token,
-                            status: constants.generals.code_status.STATUS_200,
+                            status: AppConstants.generals.code_status.STATUS_200,
                         });
                     }
                 }
@@ -43,8 +43,8 @@ class JsonWebTokenMiddleware {
         if (!token) {
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_400,
-                msg: constants.jwt.token_not_provider,
+                status: AppConstants.generals.code_status.STATUS_400,
+                msg: AppConstants.jwt.token_not_provider,
             };
         }
 
@@ -54,15 +54,15 @@ class JsonWebTokenMiddleware {
             return {
                 ok: true,
                 payload,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
             };
         } catch (error) {
             console.log(error);
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_401,
-                msg: constants.jwt.invalid_token,
+                status: AppConstants.generals.code_status.STATUS_401,
+                msg: AppConstants.jwt.invalid_token,
             };
         }
     }
@@ -79,9 +79,9 @@ class JsonWebTokenMiddleware {
         // verify access token
         const { ok, status, ...rest } = this.validateToken(
             token,
-            constants.jwt.secret_jwt
+            AppConstants.jwt.secret_jwt
         );
-        
+
         if (!ok) {
             return res.status(status).json(rest);
         }
@@ -89,7 +89,7 @@ class JsonWebTokenMiddleware {
         // bind uuid user to request object
         req.user = rest.payload;
         next();
-    }
+    };
 }
 
 export { JsonWebTokenMiddleware };
