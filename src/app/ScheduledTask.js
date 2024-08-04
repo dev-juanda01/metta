@@ -121,10 +121,10 @@ class ScheduledTask {
         const scheduleTask = new Task(
             AppConstants.celery.scheduler.task_scheduled_one_minute,
             async () => {
-                console.log(
-                    "SCHEDULED TASK ONE MINUTE -> ",
-                    this.task_stack.one_minute
-                );
+                // console.log(
+                //     "SCHEDULED TASK ONE MINUTE -> ",
+                //     this.task_stack.one_minute
+                // );
 
                 this.task_stack.one_minute = this.task_stack.one_minute.filter(
                     (current_task) => current_task.complete !== true

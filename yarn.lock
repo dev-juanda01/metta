@@ -697,9 +697,9 @@ mime@1.6.0:
   integrity sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==
 
 mixin-support@^1.0.4:
-  version "1.0.4"
-  resolved "https://registry.npmjs.org/mixin-support/-/mixin-support-1.0.4.tgz"
-  integrity sha512-d5HeUJt7bf40X9jftAO1XxgElUQUGzSKT5mA8ZE2YXMj5tSun+zNodu8+wVzhD+WKnf/lXLmrcNgdbG1ssXzQg==
+  version "1.0.5"
+  resolved "https://registry.npmjs.org/mixin-support/-/mixin-support-1.0.5.tgz"
+  integrity sha512-nPR07E5YyxqlMDo0ccJidMKY47lOPw7PMMu0eKxyi9Iz5ZpANr90ckEaNqg8jd9TC8byo+kvHLHnGG+exhGMiA==
 
 mongodb-connection-string-url@^3.0.0:
   version "3.0.0"

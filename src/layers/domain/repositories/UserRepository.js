@@ -1,6 +1,6 @@
-import * as constants from "#utils";
-import User from "../models/User.js";
 import bcryptjs from "bcryptjs";
+import { AppConstants } from "#app";
+import User from "../models/User.js";
 import { BaseRepository } from "./BaseRepository.js";
 import { SettingRepository } from "./SettingRepository.js";
 
@@ -21,7 +21,7 @@ class UserRepository extends BaseRepository {
         let response_created = await super.create(data);
 
         // create a basic settings to user, only user admin or super_admin role
-        if (data.role !== constants.users.roles.AGENT) {
+        if (data.role !== AppConstants.users.roles.AGENT) {
             const setting_repository = new SettingRepository();
             await setting_repository.create({
                 user: response_created.result.uuid,
@@ -38,23 +38,23 @@ class UserRepository extends BaseRepository {
             if (is_email) {
                 return {
                     ok: false,
-                    status: constants.generals.code_status.STATUS_400,
-                    msg: constants.users.email_already_exists,
+                    status: AppConstants.generals.code_status.STATUS_400,
+                    msg: AppConstants.users.email_already_exists,
                 };
             }
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_200,
-                msg: constants.generals.messages.success_process,
+                status: AppConstants.generals.code_status.STATUS_200,
+                msg: AppConstants.generals.messages.success_process,
             };
         } catch (error) {
             console.log(error);
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }
@@ -79,8 +79,8 @@ class UserRepository extends BaseRepository {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }
@@ -94,14 +94,14 @@ class UserRepository extends BaseRepository {
         if (!user) {
             return {
                 ok: false,
-                msg: constants.users.user_not_exists,
-                status: constants.generals.code_status.STATUS_404,
+                msg: AppConstants.users.user_not_exists,
+                status: AppConstants.generals.code_status.STATUS_404,
             };
         }
 
         return {
             ok: true,
-            status: constants.generals.code_status.STATUS_200,
+            status: AppConstants.generals.code_status.STATUS_200,
             user,
         };
     }
@@ -118,12 +118,12 @@ class UserRepository extends BaseRepository {
         if (!matchPassword) {
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_400,
-                msg: constants.users.password_incorrect,
+                status: AppConstants.generals.code_status.STATUS_400,
+                msg: AppConstants.users.password_incorrect,
             };
         }
 
-        return { ok: true, status: constants.generals.code_status.STATUS_200 };
+        return { ok: true, status: AppConstants.generals.code_status.STATUS_200 };
     }
 }
 

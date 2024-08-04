@@ -33,6 +33,7 @@
     "#database": "./src/database/index.js",
     "#whatsapp": "./src/whatsapp/index.js",
     "#layers/application/services": "./src/layers/application/services/index.js",
+    "#layers/application/events/chat": "./src/layers/application/events/chat/index.js",
     "#layers/domain/models": "./src/layers/domain/models/index.js",
     "#layers/domain/repositories": "./src/layers/domain/repositories/index.js",
     "#layers/infrastructure/controllers": "./src/layers/infrastructure/controllers/index.js",

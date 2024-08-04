@@ -1,3 +1,5 @@
+import { ChatSocketEvent } from "#layers/application/events/chat";
+
 /**
  * Socket server for manage all events socket
  */
@@ -16,7 +18,17 @@ class SocketServer {
     /**
      * Initialize socket of all namespaces
      */
-    initializeSocket() {}
+    initializeSocket() {
+        // chat events
+        const chat_events = new ChatSocketEvent(
+            this.io,
+            this.middlewares,
+            this.socket_service,
+            this.ws_manager
+        );
+        
+        chat_events.initialize();
+    }
 
     /**
      *  Create a socket instance to manage all events

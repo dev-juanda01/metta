@@ -36,6 +36,7 @@ class SettingRoutes extends BaseRoutes {
     }
 
     routes() {
+        super.create();
         this.update();
         this.updateExpiredTime();
         this.getDefaultSetting();

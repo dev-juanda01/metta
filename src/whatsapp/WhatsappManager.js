@@ -85,7 +85,7 @@ class WhatsAppManager {
 
             return {
                 ok: true,
-                status: constants.generals.code_status.STATUS_200,
+                status: AppConstants.generals.code_status.STATUS_200,
                 result: {
                     id: ws_response.messages[0].id,
                 },
@@ -95,8 +95,8 @@ class WhatsAppManager {
 
             return {
                 ok: false,
-                status: constants.generals.code_status.STATUS_500,
-                msg: constants.generals.messages.error_server,
+                status: AppConstants.generals.code_status.STATUS_500,
+                msg: AppConstants.generals.messages.error_server,
             };
         }
     }
@@ -111,7 +111,7 @@ class WhatsAppManager {
         const scheduled_task = new ScheduledTask();
 
         switch (type) {
-            case constants.whatsapp.messages.types.text:
+            case AppConstants.whatsapp.messages.types.text:
                 message_process = await this.sendTextMessage({
                     recipient_number: to,
                     message: content.body.text,
@@ -125,12 +125,12 @@ class WhatsAppManager {
                             recipient_number: to,
                             message: content.body.text,
                         },
-                        type: constants.celery.scheduler.types.FIVE_SECONDS
+                        type: AppConstants.celery.scheduler.types.FIVE_SECONDS
                     });
                 }
 
                 break;
-            case constants.whatsapp.messages.types.document:
+            case AppConstants.whatsapp.messages.types.document:
                 message_process = await this.sendDocumentMessage({
                     to: to,
                     ...content,
@@ -146,15 +146,15 @@ class WhatsAppManager {
                             to: to,
                             ...content,
                         },
-                        type: constants.celery.scheduler.types.FIVE_SECONDS
+                        type: AppConstants.celery.scheduler.types.FIVE_SECONDS
                     });
                 }
                 break;
             default:
                 message_process = {
                     ok: false,
-                    status: constants.generals.code_status.STATUS_400,
-                    msg: constants.whatsapp.messages.type_not_valid,
+                    status: AppConstants.generals.code_status.STATUS_400,
+                    msg: AppConstants.whatsapp.messages.type_not_valid,
                 };
                 break;
         }

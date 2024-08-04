@@ -1,6 +1,8 @@
 node_modules
-.env
-dump.rdb
 .vscode
 
+.env
+dump.rdb
+
 package-lock.json
+access.sh
